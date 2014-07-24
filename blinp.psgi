@@ -1,0 +1,64 @@
+#!/usr/bin/env perl
+
+use 5.016; # implies "use strict;"
+use warnings;
+use autodie;
+use utf8; # http://perldoc.perl.org/perluniintro.html (just neede because this file is utf8)
+
+use Pages;
+use Data::Dumper;
+
+use Plack::Request;
+use Hash::MultiValue;
+# http://search.cpan.org/~miyagawa/Hash-MultiValue-0.15/lib/Hash/MultiValue.pm
+
+use Plack::Response;
+use Plack::Builder;
+use Plack::App::File;
+
+my $app = sub {
+	my $env = shift;
+	
+	given ($env->{PATH_INFO}) {
+	
+		return [ 200, [ 'Content-Type' => 'text/html' ], [ Pages::addPost() ] ]
+			when '/posts/add';
+			
+		return [ 200, [ 'Content-Type' => 'text/html' ], [ 'TODO' ] ]
+			when '/posts/edit';
+			
+		return [ 200, [ 'Content-Type' => 'text/html' ], [ 'TODO' ] ]
+			when '/posts/delete';
+			
+		when('/posts/process') {
+			my $req = Plack::Request->new($env);
+			my $query = $req->parameters;
+# 			print Dumper($query);
+			my $page_url = Pages::processPost( $query );
+			my $res = Plack::Response->new(200);
+			$res->content_type('text/html');
+			$res->redirect("/posts/$page_url");
+			return $res->finalize;
+		}
+
+		default {
+			return [ 200, [ 'Content-Type' => 'text/html' ], [ 'Hello World' ]];
+		}
+	}
+};
+
+builder {
+# http://search.cpan.org/~miyagawa/Plack-1.0030/lib/Plack/Middleware/Static.pm
+	enable "Plack::Middleware::Static",
+	path => qr{^/posts/.+.html},
+	root => './';
+
+	# https://github.com/plack/Plack/issues/93
+	enable "Plack::Middleware::Static",
+    path => sub { s!(^/posts/?)$!/index.html! },
+    root => './posts';
+
+	$app;
+};
+
+# http://transfixedbutnotdead.com/2010/08/30/givenwhen-the-perl-switch-statement/

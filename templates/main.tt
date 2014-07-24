@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="main.css" media="screen" />
+		<title>
+		[% SWITCH pagetype %]
+		[% CASE [ 'post', 'add' ] %]
+			[% title %] - [% blogtitle %]
+		[% CASE 'postslist' %]
+			<h1>[% blogtitle %]</h1>
+		[% CASE DEFAULT %]
+			<title>[% title %]</title>
+		[% END %]
+		</title>
+	</head>
+	<body>
+		<header>
+			<h1>[% title %]</h1>
+		</header>
+		<aside>
+			<nav>
+				<!--menu-->
+			</nav>
+			<section>
+				<!--tags maybe-->
+			</section>
+		</aside>
+		<section>
+		[% SWITCH pagetype %]
+		[% CASE 'post' %]
+			[% INCLUDE post.tt %]
+		[% CASE 'postslist' %]
+			[% INCLUDE postslist.tt %]
+			[% # content %]
+		[% CASE 'add' %]
+			[% INCLUDE add.tt %]
+		[% CASE DEFAULT %]
+			[% # TODO %]
+			[% content %]
+		[% END %]
+		</section>
+		<footer>
+			<!-- footer -->
+		</footer>
+	</body>
+</html>

@@ -1,0 +1,9 @@
+<form action="/posts/process" method="post">
+	<fieldset>
+		<legend>Insert your post</legend>
+		<p><input type="text" name="post_title" /></p>
+		<p><textarea rows="10" cols="30" name="post_content"></textarea></p>
+		<p><input type="text" name="tags" /></p>
+	</fieldset>
+	<input type="submit" />
+</form>

@@ -1,0 +1,7 @@
+[% FOREACH key IN posts.keys %]
+	[% posts.$key.title %]
+	[% USE MultiMarkdown -%]
+		[% FILTER multimarkdown %]
+		[% posts.$key.content %]
+	[% END %]
+[% END %]
