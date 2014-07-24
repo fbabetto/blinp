@@ -16,5 +16,7 @@ TODO
 ----
 * Authentication (using Plack::Middleware::Auth::Basic or Plack::Middleware::Auth::Digest);
 * CSS, javascript, images folders fixes;
+* tags management;
 * a decent default theme;
+* users management;
 * post's preview using javascript.
