@@ -1,5 +1,5 @@
-posts/*
-posts-src/*
+posts/*.html
+posts-src/*.markdown
 posts-metadata.json
 users.json
 
