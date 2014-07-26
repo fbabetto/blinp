@@ -72,7 +72,7 @@ builder {
 # 	
 # http://search.cpan.org/~miyagawa/Plack-1.0030/lib/Plack/Middleware/Static.pm
 	enable "Plack::Middleware::Static",
-		path => qr{^/posts/.+.html},
+		path => qr{^/posts/.+\.html},
 		root => './';
 
 	# https://github.com/plack/Plack/issues/93
