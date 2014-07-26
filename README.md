@@ -16,7 +16,7 @@ Dependencies
 TODO
 ----
 * ~~Authentication (using Plack::Middleware::Auth::Basic or Plack::Middleware::Auth::Digest)~~;
-* CSS, javascript, images folders fixes;
+* ~~CSS, javascript, images folders fixes~~;
 * tags management (view posts by tag, by date, etc.);
 * a decent default theme;
 * users management;

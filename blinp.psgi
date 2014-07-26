@@ -56,26 +56,33 @@ my $app = sub {
 builder {
 # http://iinteractive.github.io/OX/advent/2012-12-15.html
 # 	enable 'Session';
-	enable "Session::Cookie";
+	enable "Session::Cookie", secret=>'foobar';# FIXME secret
 
 	enable_if {$_[0]->{REQUEST_URI} =~ /^\/posts\/(add|edit|delete|process)/ and !exists $_[0]->{'psgix.session'}{'username'}}
 		"Auth::Basic", authenticator => sub {
 		my($username, $password, $env) = @_;
 		#return $username eq 'admin' && $password eq 'foobar';
-		return Users::authenticate( $username, $password, $env);
+		Dumper($username);
+		if($username ne '') {
+			return Users::authenticate( $username, $password, $env);
+		}
 	};
 # 		"Auth::Digest", realm => "Secured", secret => "BlahBlah", authenticator => sub { $_[0] eq $_[1] };
 # 		'Auth::Form', authenticator => sub {my $env = shift; $_[0] eq $_[1] };
 # 	
 # http://search.cpan.org/~miyagawa/Plack-1.0030/lib/Plack/Middleware/Static.pm
 	enable "Plack::Middleware::Static",
-	path => qr{^/posts/.+.html},
-	root => './';
+		path => qr{^/posts/.+.html},
+		root => './';
 
 	# https://github.com/plack/Plack/issues/93
 	enable "Plack::Middleware::Static",
-    path => sub { s!(^/posts/?)$!/index.html! },
-    root => './posts';
+		path => sub { s!(^/posts/?)$!/index.html! },
+		root => './posts';
+
+	enable "Plack::Middleware::Static",
+		path => qr{^/(img|js|css)/},
+		root => './static/';
 
 	$app;
 };
