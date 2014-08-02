@@ -9,9 +9,10 @@ Dependencies
 ------------
 
 * Plack;
+* Plack::Session;
 * Template-Toolkit for the HTML templates;
 * Template::Plugin::MultiMarkdown for posting blog's posts written in MultiMarkdown;
-* Authen::Passphrase::BlowfishCrypt;
+* Authen::Passphrase::BlowfishCrypt.
 
 TODO
 ----
