@@ -60,9 +60,10 @@ sub listPosts {
 sub addPost {
 	my $title = 'Add a new post';
 	my $vars = {
+		blogtitle => 'test',
 		pagetype => 'add',
 		title => $title,
-		blogtitle => 'test'
+		id => 0
 	};
 	# the html header is sent by the caller of this function
 	my $page;
@@ -71,7 +72,36 @@ sub addPost {
 }
 
 sub editPost {
-...
+	my $params=shift;
+	my $post_id=$params->{'post'}; # post's id to be edited
+	
+	my $metadata=Metadata::getPostsMetadata();
+	my $title=$metadata->{$post_id}{'title'};
+	my $tags=$metadata->{$post_id}{'tags'};
+	# TODO add all the missing metadata (some are optional!)
+	
+	my $page;
+	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") { # if exists and is not empty
+		open(FILE, "<", "posts-src/$post_id.markdown");
+		my $content=<FILE>;
+		close(FILE);
+
+		my $vars = {
+			blogtitle => 'test',
+			pagetype => 'edit',
+			title => $title,
+			content => $content,
+			tags => $tags,
+			id => $post_id
+		};
+		# the html header is sent by the caller of this function
+		
+		$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
+	}
+	else {
+		$page = "Post not found!";
+	}
+	return $page;
 }
 
 sub deletePost {
@@ -85,42 +115,60 @@ sub processPost {
 	my $title = $params->{'post_title'};
 	my $content = $params->{'post_content'};
 	my $tags = $params->{'tags'};
-	my $modified = 0; # TODO this var will be used in case of post's modification
+	my $post_id = $params->{'id'}; # TODO this var will be used in case of post's modification
 	
 	my $current_datetime = getCurrentDateTime();
 	# we calculate the datetime/date only once to avoid differences beetween the date in current_datetime and the date in current_date
 	my $current_date = getCurrentDate($current_datetime);
 	
-	# save post's source content in multimarkdown format
-	my $found=0;
-	my $index=0;
-	my $id=0;
-	while(!$found) {
-		if(!-e "posts-src/$current_date-$index.markdown") {
-			$found=1;
-			$id="$current_date-$index";
-			#save
-			open(OUTFILE, ">", "posts-src/$current_date-$index.markdown");
-			print OUTFILE $content;
-			close (OUTFILE);
-		}
-		else {
-			$index++;
+	if($post_id==0) {
+		# save post's source content in multimarkdown format
+		my $found=0;
+		my $index=0;
+		while(!$found) {
+			if(!-e "posts-src/$current_date-$index.markdown") {
+				$found=1;
+				$post_id="$current_date-$index";
+				#save
+				open(OUTFILE, ">", "posts-src/$post_id.markdown");
+				print OUTFILE $content;
+				close (OUTFILE);
+			}
+			else {
+				$index++;
+			}
 		}
 	}
+	else {
+		open(OUTFILE, ">", "posts-src/$post_id.markdown");
+		print OUTFILE $content;
+		close (OUTFILE);
+	}
 	
-	print Dumper($index);
+# 	print Dumper($index);
+
+	my $created = 0;
+	my $modified = 0;
+	if($post_id) {
+		my $posts_metadata=Metadata::getPostsMetadata();
+		$created = $posts_metadata->{$post_id}{'created'};# FIXME maybe add a check if the key exists
+		$modified = $current_datetime;
+	}
+	else {
+		$created = $current_datetime;
+	}
 
 	# save metadata
 	my $decoded_hashref = {};
-# 		print Dumper($decoded_hashref);
-	$decoded_hashref->{$id}{'title'}=decode('utf8', $title);
-	$decoded_hashref->{$id}{'created'}=$current_datetime;
+	$decoded_hashref->{$post_id}{'title'}=decode('utf8', $title);
 	if($tags) {
-		$decoded_hashref->{$id}{'tags'}=decode('utf8', $tags);
+		$decoded_hashref->{$post_id}{'tags'}=decode('utf8', $tags);
+	}
+	if($created) {
+		$decoded_hashref->{$post_id}{'created'}=$created;
 	}
 	if($modified) {
-		$decoded_hashref->{$id}{'modified'}=$modified;
+		$decoded_hashref->{$post_id}{'modified'}=$modified;
 	}
 	# TODO SESSION AND AUTHOR implementation
 	
@@ -134,15 +182,15 @@ sub processPost {
 		title => $title,
 		content => $content,
 		blogtitle => 'test',
-		created => $current_datetime,
+		created => $created,
 		modified => $modified,
 		tags => $tags
 	};
-	$template->process('main.tt', $vars, "$id.html") || die $template->error(), "\n";
+	$template->process('main.tt', $vars, "$post_id.html") || die $template->error(), "\n";
 	
 	listPosts();
 	
-	return "$id.html";
+	return "$post_id.html";
 	
 }
 

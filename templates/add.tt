@@ -1,9 +1,13 @@
 <form action="/posts/process" method="post">
 	<fieldset>
-		<legend>Insert your post</legend>
-		<p><input type="text" name="post_title" /></p>
-		<p><textarea rows="10" cols="30" name="post_content"></textarea></p>
-		<p><input type="text" name="tags" /></p>
+	[% SWITCH pagetype %]
+		[% CASE 'add' %]<legend>Insert your post</legend>
+		[% CASE 'edit' %]<legend>Edit your post</legend>
+	[% END %]
+		<p><input type="text" name="post_title" [% IF pagetype == 'edit' %]value="[% title %]"[% END %]/></p>
+		<p><textarea rows="10" cols="30" name="post_content">[% IF pagetype == 'edit' %][% content %][% END %]</textarea></p>
+		<p><input type="text" name="tags" [% IF pagetype == 'edit' %]value="[% tags %]"[% END %]/></p>
 	</fieldset>
+	<input type="hidden" name="id" value="[% id %]" />
 	<input type="submit" />
 </form>

@@ -30,8 +30,17 @@ my $app = sub {
 		return [ 200, [ 'Content-Type' => 'text/html' ], [ Pages::addPost() ] ]
 			when '/posts/add';
 			
-		return [ 200, [ 'Content-Type' => 'text/html' ], [ 'TODO' ] ]
-			when '/posts/edit';
+		when('/posts/edit') {
+			my $req = Plack::Request->new($env);
+			my $query = $req->parameters;
+			print Dumper($query);
+			my $page = Pages::editPost( $query );
+			print Dumper($page);
+ 			my $res = Plack::Response->new(200);
+ 			$res->content_type('text/html');
+ 			$res->body($page);
+ 			return $res->finalize;
+		}
 			
 		return [ 200, [ 'Content-Type' => 'text/html' ], [ 'TODO' ] ]
 			when '/posts/delete';

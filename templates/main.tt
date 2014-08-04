@@ -5,7 +5,7 @@
 		<link rel="stylesheet" href="/css/main.css" media="screen" />
 		<title>
 		[% SWITCH pagetype %]
-		[% CASE [ 'post', 'add' ] %]
+		[% CASE [ 'post', 'add', 'edit' ] %]
 			[% title %] - [% blogtitle %]
 		[% CASE 'postslist' %]
 			[% blogtitle %]
@@ -33,7 +33,7 @@
 		[% CASE 'postslist' %]
 			[% INCLUDE postslist.tt %]
 			[% # content %]
-		[% CASE 'add' %]
+		[% CASE [ 'add', 'edit' ] %]
 			[% INCLUDE add.tt %]
 		[% CASE DEFAULT %]
 			[% # TODO %]
