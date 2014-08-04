@@ -42,8 +42,29 @@ my $app = sub {
  			return $res->finalize;
 		}
 			
-		return [ 200, [ 'Content-Type' => 'text/html' ], [ 'TODO' ] ]
-			when '/posts/delete';
+		when('/posts/delete') {
+			my $req = Plack::Request->new($env);
+			my $query = $req->parameters;
+			print Dumper($query);
+			my $page = Pages::deletePostConfirm( $query );
+			print Dumper($page);
+ 			my $res = Plack::Response->new(200);
+ 			$res->content_type('text/html');
+ 			$res->body($page);
+ 			return $res->finalize;
+		}
+		
+		when('/posts/deleted') {
+			my $req = Plack::Request->new($env);
+			my $query = $req->parameters;
+			print Dumper($query);
+			my $page = Pages::deletePost( $query );
+			print Dumper($page);
+ 			my $res = Plack::Response->new(200);
+ 			$res->content_type('text/html');
+ 			$res->body($page);
+ 			return $res->finalize;
+		}
 			
 		when('/posts/process') {
 			my $req = Plack::Request->new($env);
@@ -67,7 +88,7 @@ builder {
 # 	enable 'Session';
 	enable "Session::Cookie", secret=>'foobar';# FIXME secret
 
-	enable_if {$_[0]->{REQUEST_URI} =~ /^\/posts\/(add|edit|delete|process)/ and !exists $_[0]->{'psgix.session'}{'username'}}
+	enable_if {$_[0]->{REQUEST_URI} =~ /^\/posts\/(add|edit|delete|deleted|process)/ and !exists $_[0]->{'psgix.session'}{'username'}}
 		"Auth::Basic", authenticator => sub {
 		my($username, $password, $env) = @_;
 		#return $username eq 'admin' && $password eq 'foobar';

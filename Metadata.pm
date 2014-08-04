@@ -58,4 +58,23 @@ sub addPostMetadata {
 	_writeMetadataFile( $metadata_hash_ref );
 }
 
+sub moveDeletedPostMetadata {
+	my $post_id = shift;
+	my $metadata = getPostsMetadata;
+	my $post_metadata = $metadata->{$post_id};
+	my $deleted_metadata={};
+	if(-e 'deleted-post-metadata.json') {
+		open(JSONFILE, "<", "deleted-posts-metadata.json");
+		my $json= <JSONFILE>;
+		close(JSONFILE);
+		$deleted_metadata=decode_json($json);
+	}
+	@{$deleted_metadata}{keys %{$post_metadata}} = values %{$post_metadata};
+	delete $metadata->{$post_id};
+	_writeMetadataFile($metadata);
+	open(JSONFILE, ">", "deleted-posts-metadata.json");
+	print JSONFILE encode_json($deleted_metadata);
+	close(JSONFILE);
+}
+
 1;

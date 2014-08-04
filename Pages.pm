@@ -17,6 +17,7 @@ use Template;
 use Encode;
 use Time::Piece;
 use JSON::PP;
+use File::Copy "mv";
 
 use Metadata;
 
@@ -104,9 +105,67 @@ sub editPost {
 	return $page;
 }
 
-sub deletePost {
-...
+sub deletePostConfirm {
+	my $params=shift;
+	my $post_id=$params->{'post'};
+	my $page;
+	my $metadata=Metadata::getPostsMetadata();
+	my $title=$metadata->{$post_id}{'title'};
+	my $created=$metadata->{$post_id}{'created'};
+	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") { # if exists and is not empty
+		my $vars = {
+				blogtitle => 'test',
+				pagetype => 'confirm_delete',
+				title => $title,
+				created => $created,
+	# 			content => $content,
+	# 			tags => $tags,
+				id => $post_id
+		};
+		$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
+	}
+	else {
+		$page = "Post not found!";
+	}
+	return $page;
 }
+
+# NOTE: the post source in markdown is not deleted, only the generated html is deleted.
+sub deletePost {
+	my $params=shift;
+	my $post_id=$params->{'post'}; # post's id to be deleted
+	# maybe the deleted posts' metadata should be saved on a separate json file, instead of deleting it
+	# the post src (post_id.markdown) should be moved to a special folder called deleted
+	
+	# delete post's html file
+	unlink "posts/$post_id.html";
+	
+	# move post's markdown file
+	if(!-d 'posts-src/deleted') {
+		mkdir 'posts-src/deleted';
+	}
+	mv("posts-src/$post_id.markdown","posts-src/deleted/");
+	
+	# move post's metadata
+	Metadata::moveDeletedPostMetadata( $post_id );
+	
+	listPosts();
+	
+	my $page;
+	my $vars = {
+		blogtitle => 'test',
+		pagetype => 'delete',
+# 		title => $title,
+# 		created => $created,
+# 			content => $content,
+# 			tags => $tags,
+		id => $post_id
+	};
+	$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
+	return $page;# TODO add deletion/move tests in case something go wrong
+}
+
+
 
 sub processPost {
 	my $params = shift;

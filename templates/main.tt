@@ -10,7 +10,7 @@
 		[% CASE 'postslist' %]
 			[% blogtitle %]
 		[% CASE DEFAULT %]
-			<title>[% title %]</title>
+			[% title %]
 		[% END %]
 		</title>
 	</head>
@@ -35,6 +35,8 @@
 			[% # content %]
 		[% CASE [ 'add', 'edit' ] %]
 			[% INCLUDE add.tt %]
+		[% CASE [ 'confirm_delete', 'delete' ] %]
+			[% INCLUDE delete.tt %]
 		[% CASE DEFAULT %]
 			[% # TODO %]
 			[% content %]

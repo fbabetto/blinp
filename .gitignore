@@ -1,5 +1,6 @@
 posts/*.html
 posts-src/*.markdown
+posts-src/deleted/*.markdown
 *.json
 
 note
