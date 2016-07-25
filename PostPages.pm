@@ -1,4 +1,4 @@
-package Pages;
+package PostPages;
 
 use 5.016; # implies "use strict;"
 use warnings;
@@ -8,10 +8,10 @@ use utf8; # http://perldoc.perl.org/perluniintro.html (just neede because this f
 use Hash::MultiValue;
 use Data::Dumper;
 
-require Exporter;
-our @ISA = qw(Exporter);
+#require Exporter;
+#our @ISA = qw(Exporter);
 #our @EXPORT = qw();
-our @EXPORT_OK = qw(addPost editPost deletePost listPosts);  # symbols to export on request
+#our @EXPORT_OK = qw(add edit delete list);  # symbols to export on request
 
 use Template;
 use Encode;
@@ -33,9 +33,8 @@ my $template = Template->new($config);
 
 # listPosts($posts_per_page)
 # generate and paginate the post's list
-sub listPosts {
+sub list {
 	my $posts_per_page = shift;
-	# TODO METADATA MODULE FOR MANAGING METADATA!
 	my $posts_count = Metadata::getPostsCount(); # USEFUL FOR PAGINATION
 	my $posts_metadata = Metadata::getPostsMetadata();
 	my $posts_list = $posts_metadata;
@@ -58,7 +57,7 @@ sub listPosts {
 	return $page;
 }
 
-sub addPost {
+sub add {
 	my $title = 'Add a new post';
 	my $vars = {
 		blogtitle => 'test',
@@ -66,15 +65,16 @@ sub addPost {
 		title => $title,
 		id => 0
 	};
-	# the html header is sent by the caller of this function
+	
 	my $page;
 	$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
 	return $page;
 }
 
-sub editPost {
-	my $params=shift;
-	my $post_id=$params->{'post'}; # post's id to be edited
+sub edit {
+	#my $params=shift;
+	#my $post_id=$params->{'post'}; # post's id to be edited
+	my $post_id = shift;
 	
 	my $metadata=Metadata::getPostsMetadata();
 	my $title=$metadata->{$post_id}{'title'};
@@ -84,7 +84,8 @@ sub editPost {
 	my $page;
 	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") { # if exists and is not empty
 		open(FILE, "<", "posts-src/$post_id.markdown");
-		my $content=<FILE>;
+# 		my $content=<FILE>;
+		my $content = do { local $/; <FILE> };
 		close(FILE);
 
 		my $vars = {
@@ -95,19 +96,21 @@ sub editPost {
 			tags => $tags,
 			id => $post_id
 		};
-		# the html header is sent by the caller of this function
 		
 		$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
 	}
 	else {
 		$page = "Post not found!";
 	}
+	print Dumper($page);
 	return $page;
 }
 
-sub deletePostConfirm {
+sub deleteConfirm {
+	my $post_id_in_query = shift;
 	my $params=shift;
-	my $post_id=$params->{'post'};
+	#my $post_id=$params->{'post'};
+	my $post_id = $post_id_in_query;
 	my $page;
 	my $metadata=Metadata::getPostsMetadata();
 	my $title=$metadata->{$post_id}{'title'};
@@ -131,7 +134,8 @@ sub deletePostConfirm {
 }
 
 # NOTE: the post source in markdown is not deleted, only the generated html is deleted.
-sub deletePost {
+sub delete {
+	my $post_id_in_query = shift; # IGNORED
 	my $params=shift;
 	my $post_id=$params->{'post'}; # post's id to be deleted
 	# maybe the deleted posts' metadata should be saved on a separate json file, instead of deleting it
@@ -144,10 +148,12 @@ sub deletePost {
 	if(!-d 'posts-src/deleted') {
 		mkdir 'posts-src/deleted';
 	}
+	# FIXME: if the destination directory contains a file with the same name, the file will be overwritten?
 	mv("posts-src/$post_id.markdown","posts-src/deleted/");
 	
 	# move post's metadata
-	Metadata::moveDeletedPostMetadata( $post_id );
+	#Metadata::moveDeletedPostMetadata( $post_id );
+	Metadata::removePostMetadata($post_id);
 	
 	listPosts();
 	
@@ -165,9 +171,8 @@ sub deletePost {
 	return $page;# TODO add deletion/move tests in case something go wrong
 }
 
-
-
-sub processPost {
+sub process {
+	my $post_id_in_query = shift; # IGNORED
 	my $params = shift;
 	
 	print Dumper($params);
@@ -179,6 +184,8 @@ sub processPost {
 	my $current_datetime = getCurrentDateTime();
 	# we calculate the datetime/date only once to avoid differences beetween the date in current_datetime and the date in current_date
 	my $current_date = getCurrentDate($current_datetime);
+	
+	# TODO ADD "added" datetime metadata even if the date is in its post_id
 	
 	if($post_id==0) {
 		# save post's source content in multimarkdown format
