@@ -37,6 +37,8 @@
 			[% INCLUDE add.tt %]
 		[% CASE [ 'confirm_delete', 'delete' ] %]
 			[% INCLUDE delete.tt %]
+		[% CASE [ 'change_password', 'change_password_successful', 'change_password_failed' ] %]
+			[% INCLUDE change_password.tt %]
 		[% CASE DEFAULT %]
 			[% # TODO %]
 			[% content %]

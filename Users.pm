@@ -89,4 +89,21 @@ sub authenticate {
 	return Plack::Util::FALSE;
 }
 
+sub change_password {
+	my ($username, $old_password, $new_password) = @_;
+	print Dumper($username);
+	print Dumper($old_password);
+	print Dumper($new_password);
+	my $users = _get_users_data();
+	my $hashed_password = $users->{$username}{'hashed_password'};
+	my $pbkdf2 = Crypt::PBKDF2->new;
+	if($pbkdf2->validate($hashed_password, $old_password)) {
+		_hash_password($username, $new_password);
+		print Dumper("Success!");
+		return Plack::Util::TRUE;
+	}
+		print Dumper("Fail!");
+	return Plack::Util::FALSE;
+}
+
 1;

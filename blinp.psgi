@@ -3,9 +3,10 @@
 use 5.016; # implies "use strict;"
 use warnings;
 use autodie;
-use utf8; # http://perldoc.perl.org/perluniintro.html (just neede because this file is utf8)
+use utf8; # http://perldoc.perl.org/perluniintro.html (just needed because this file is utf8)
 
 use PostPages;
+use UserPages;
 use Data::Dumper;
 
 use Plack::Request;
@@ -21,11 +22,10 @@ use Users;# FIXME
 use Requests;
 
 # FIXME MAYBE TEMPLATE FOR DEFAULT STATUS 404 403 ECC.
+# FIXME reduce code duplication
 
-my $blog_impl = sub {
-	#my $env = shift;
+my $post_admin_impl = sub {
 	my($action, $arguments, $post) = @_;
-
 	my %ROUTING = (
 		"/"			=> \&home,
 		"/add"		=> \&PostPages::add,
@@ -33,8 +33,6 @@ my $blog_impl = sub {
 		"/delete"	=> \&PostPages::deleteConfirm,
 		"/deleted"	=> \&PostPages::delete,
 		"/process"	=> \&PostPages::process,
-		
-		"/changepassword" => \&UserPages::change_password,
 	);
  	if($ROUTING{$action}) {
  		my $page = $ROUTING{$action}->($arguments, $post);
@@ -43,27 +41,61 @@ my $blog_impl = sub {
 		$res->body($page);
 		return $res->finalize;
  	} else {
-		return [ 404, [ 'Content-Type' => 'text/html' ], [ 'Page not found: admin page not found.' ]]; # FIXME
+		return [ 404, [ 'Content-Type' => 'text/html' ], [ 'Page not found: post admin page not found.' ]]; # FIXME
  	}
-
 };
 
-# the prefix here is stripped by plack: /posts/add -> /add
-my $admin_blog = sub {
+my $user_admin_impl = sub {
+	my($action, $req_uri, $username, $params) = @_;
+	my %ROUTING = (
+		"/"			=> \&home,
+		"/changepassword"		=> \&UserPages::change_password,
+	);
+ 	if($ROUTING{$action}) {
+ 		my $page = $ROUTING{$action}->($req_uri, $username, $params);
+		my $res = Plack::Response->new(200);
+		$res->content_type('text/html');
+		$res->body($page);
+		return $res->finalize;
+ 	} else {
+		return [ 404, [ 'Content-Type' => 'text/html' ], [ 'Page not found: user admin page not found.' ]]; # FIXME
+ 	}
+};
+
+# Here we manage
+# /blog/admin/user{/,change_password}
+my $user_admin = sub {
 	my $env = shift;
-	
 	my $req = Plack::Request->new($env);
 	my $uri = $req->path_info;
+	my $req_uri = $req->request_uri;
+	my $session = Plack::Session->new($env);
+	my $username = $session->get('username');
 	my $function_regex = qr/\/[a-z]+/;
 	my $argument_regex = qr/.*/;
 	if ($uri =~ /(?<function>$function_regex)\/?(?<argument>$argument_regex)/) {
 		my $function = $+{function};
  		my $argument = $+{argument};
  		my $params_in_posts = $req->parameters;
- 		print Dumper($function);
-		return $blog_impl->($function, $argument, $params_in_posts);
+		return $user_admin_impl->($function, $req_uri, $username, $params_in_posts);
 	}
-	return [ 404, [ 'Content-Type' => 'text/html' ], [ 'Page not found on admin blog' ]]; #
+};
+
+# Here we manage
+# /blog/admin/post{/,/add,/edit,/delete,/deleted,/process}
+my $post_admin = sub {
+	my $env = shift;
+	my $req = Plack::Request->new($env);
+	my $uri = $req->path_info;
+	my $req_uri = $req->request_uri;
+	my $function_regex = qr/\/[a-z]+/;
+	my $argument_regex = qr/.*/;
+	if ($uri =~ /(?<function>$function_regex)\/?(?<argument>$argument_regex)/) {
+		my $function = $+{function};
+ 		my $argument = $+{argument};
+ 		my $params_in_posts = $req->parameters;
+		return $post_admin_impl->($function, $argument, $params_in_posts);
+	}
 };
 
 
@@ -99,12 +131,13 @@ builder {
 	$urlmap->map($prefix."/admin" => builder {
 		enable "Auth::Basic", authenticator => sub {
 			my($username, $password, $env) = @_;
-			Dumper($username);
+			#Dumper($username);
 			if($username ne '') {
 				return Users::authenticate( $username, $password, $env);
 			}
 		};
-		$admin_blog;
+		mount "/user" => $user_admin;
+		mount "/post" => $post_admin;
 	});
 	my $app = $urlmap->to_app;
 };
