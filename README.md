@@ -27,6 +27,8 @@ This is in early development stage! Don't use it in production!
 * __maybe save posts' metadata in the same markdown file, so every post source is self contained and you shouldn't manage metadata separately, specially on deletion/undeletion.__
 * rename posts sources from .markdown to .md
 * CPAN stuff
+* __pass url prefix to pages' templates__
+* __maybe move template configuration to a separate configuration file instead of hardcoding them in the pm file__
 
 ## Roadmap
 ### 0.1
