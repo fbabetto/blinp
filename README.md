@@ -50,3 +50,8 @@ This is in early development stage! Don't use it in production!
 * post preview while adding/editing;
 * tags autocompletion;
 * "posts per user" or "posts per date" or other special pages (maybe).
+
+## Known issues
+* URLs in template files are hardcoded so every time the blog prefix or the routing configuration changes, these files need to be updated manually; the base URL should be passed as parameter instead;
+* a separate metadata file for all posts is difficult to maintain and does not offer any real advantage; it's better to put the metadata inside its own post source file.
+
