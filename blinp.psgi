@@ -98,36 +98,43 @@ my $post_admin = sub {
 	}
 };
 
-
 my $main = sub {
 	# FIXME
 	return [ 404, [ 'Content-Type' => 'text/html' ], [ 'Page not found on /' ]]; #
 };
 
 my $posts = Plack::App::File->new(root => "./posts")->to_app;
+my $static = Plack::App::File->new(root => "./static")->to_app;
 
 builder {
 	enable "Session::Cookie", secret=>'foobar';# FIXME secret
 
 	my $prefix = "/blog";
+	#my $prefix = "/";
 	
 	if(!($prefix =~ /\/[a-z]*/)) {
 		die "Prefix should have a leading slash (\"/\").";
 	}
 	
 	my $urlmap = Plack::App::URLMap->new;
-	
-	$urlmap->map("/" => $main);
-	#$urlmap->map("/posts" => $blog);
-	#$urlmap->map($prefix => $posts);
-	#$urlmap->map($prefix => Plack::App::File->new(file => $prefix."/index.html"););
+
+	# if the blog root is not / we shoud manage /
+	if(!($prefix eq "/")) {
+		$urlmap->map("/" => $main);
+	}
+	# example http://localhost:5000/blog/2016-06-15-0.html
 	$urlmap->map("$prefix" => builder {
 		enable "Plack::Middleware::Static",
-		path => sub { s!(^/?)$!/index.html! }, # for mapping /posts and /posts/ to /posts/index.html
+		# for mapping /$prefix and /$prefix/ to /posts/index.html
+		path => sub { s!(^/?)$!/index.html! },
 		root => "./posts";
-		$posts; # all other url different from /posts will be passed to the static file middleware
+		$posts; 
 	});
-	
+	$urlmap->map($prefix."/static" => builder {
+		enable "Plack::Middleware::Static",
+		path => qr{^/\/(css|img|js)/};
+		$static;
+	});
 	$urlmap->map($prefix."/admin" => builder {
 		enable "Auth::Basic", authenticator => sub {
 			my($username, $password, $env) = @_;
