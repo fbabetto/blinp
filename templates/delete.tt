@@ -1,6 +1,6 @@
 [% SWITCH pagetype %]
 [% CASE 'confirm_delete' %]
-<form action="/posts/deleted" method="post">
+<form action="/blog/admin/post/deleted" method="post">
 <p>Are you sure you want to delete the post [% id %] with title [% title %] created [% created %]?</p>
 	<input type="hidden" name="post" value="[% id %]" />
 	<input type="submit" value="yes" />

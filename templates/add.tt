@@ -1,4 +1,4 @@
-<form action="/posts/process" method="post">
+<form action="/blog/admin/post/process" method="post">
 	<fieldset>
 	[% SWITCH pagetype %]
 		[% CASE 'add' %]<legend>Insert your post</legend>

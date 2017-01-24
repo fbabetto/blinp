@@ -254,7 +254,7 @@ sub process {
 	};
 	$template->process('main.tt', $vars, "$post_id.html") || die $template->error(), "\n";
 	
-	listPosts();
+	list();
 	
 	return "$post_id.html";
 	
