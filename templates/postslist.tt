@@ -1,4 +1,4 @@
-[% FOREACH key IN posts.keys %]
+[% FOREACH key IN posts.keys.sort.reverse %] [% # ordered posts id's in reverse order %]
 [% posts.$key.title %]
 [% USE MultiMarkdown -%]
 [% FILTER multimarkdown %]
