@@ -18,6 +18,7 @@ use Encode;
 use Time::Piece;
 use JSON::PP;
 use File::Copy "mv";
+use POSIX;
 
 use Metadata;
 
@@ -31,19 +32,25 @@ my $config = {
 
 my $template = Template->new($config);
 
-# listPosts($posts_per_page)
-# generate and paginate the post's list
-sub list {
-	my $posts_per_page = shift;
-	my $posts_count = Metadata::getPostsCount(); # USEFUL FOR PAGINATION
-	my $posts_metadata = Metadata::getPostsMetadata();
-	my $posts_list = $posts_metadata;
-	# TODO ADD A SNIPPET OF CONTENT TO POSTS_LIST
-	foreach my $key (keys %{ $posts_list }) {
-		$posts_list->{$key}{'content'}='TODO'; # TODO
-		# TODO PAGINATION
+sub _generate_index {
+	my @posts_ids = @{$_[0]};
+	my $page = $_[1];
+	print "posts_ids: ".Dumper(@posts_ids)."\n";
+	print "page name: ".Dumper($page)."\n";
+	my $post_count = scalar @posts_ids;
+	my $posts_list = {}; # ref to an empty hash
+	foreach my $post_id (@posts_ids) {
+		my($metadata, $content) = Metadata::getPostMetadataAndContentSnippet($post_id);
+		if(!$metadata) {
+			print "\nWARNING: no metadata for post id: ".$post_id."\n";
+		} else {
+			$posts_list->{$post_id}=$metadata->{$post_id};
+			$posts_list->{$post_id}{'content'}=$content;
+		}
 	}
 	
+	# the posts are ordered by template-toolkit in the output file
+	# because we can't sort the hash post id keys
 	my $title = 'Index';
 	my $vars = {
 		pagetype => 'postslist',
@@ -52,15 +59,48 @@ sub list {
 		posts => $posts_list,
 	};
 	
-	my $page = 'index.html';
 	$template->process('main.tt', $vars, $page) || die $template->error(), "\n";
 	return $page;
+}
+
+# generate and paginate the post's list
+sub list {
+	my $posts_per_pages= 10; # edit here to set pagination (0 for disabling pagination)
+	my @posts_ids = Metadata::getPostsIDs();
+	# should be ordered because after it could be splitted for pagination
+	@posts_ids = sort {$b cmp $a} @posts_ids;
+	my $post_count = scalar @posts_ids;
+	if ($posts_per_pages == 0) { # to disable pagination
+		$posts_per_pages = $post_count;
+	}
+	my $index_pages = ceil($post_count / $posts_per_pages);
+	my $generated_pages = 0;
+	my $start_index = 0;
+	my $end_index = $posts_per_pages-1;
+	my $index_page_name='index.html';
+	while($end_index <= ($post_count-1)) {
+		if($end_index > ($post_count-1)) {
+			$end_index = $post_count-1;
+		}
+		my @current_posts_ids = @posts_ids[$start_index..$end_index];
+		_generate_index(\@current_posts_ids, $index_page_name);
+		$generated_pages++;
+		$start_index+=$posts_per_pages;
+		$end_index+=$posts_per_pages;
+		$index_page_name = 'index-'.$generated_pages.'.html';
+	}
+	if($generated_pages < $index_pages) {
+		# we miss the last index files
+		$end_index = ($post_count-1);
+		my @current_posts_ids = @posts_ids[$start_index..$end_index];
+		_generate_index(\@current_posts_ids, $index_page_name);
+	}
 }
 
 sub add {
 	my $title = 'Add a new post';
 	my $vars = {
-		blogtitle => 'test',
+		blogtitle => 'test', # FIXME
 		pagetype => 'add',
 		title => $title,
 		id => 0
@@ -75,19 +115,12 @@ sub edit {
 	#my $params=shift;
 	#my $post_id=$params->{'post'}; # post's id to be edited
 	my $post_id = shift;
-	
-	my $metadata=Metadata::getPostsMetadata();
-	my $title=$metadata->{$post_id}{'title'};
-	my $tags=$metadata->{$post_id}{'tags'};
-	# TODO add all the missing metadata (some are optional!)
-	
 	my $page;
-	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") { # if exists and is not empty
-		open(FILE, "<", "posts-src/$post_id.markdown");
-# 		my $content=<FILE>;
-		my $content = do { local $/; <FILE> };
-		close(FILE);
-
+	my ($metadata, $content) = Metadata::getPostMetadataAndContent($post_id);
+	if($metadata) {
+		my $title=$metadata->{$post_id}{'title'};
+		my $tags=$metadata->{$post_id}{'tags'};
+		# TODO add all the missing metadata (some are optional!)
 		my $vars = {
 			blogtitle => 'test',
 			pagetype => 'edit',
@@ -96,7 +129,6 @@ sub edit {
 			tags => $tags,
 			id => $post_id
 		};
-		
 		$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
 	}
 	else {
@@ -112,10 +144,10 @@ sub deleteConfirm {
 	#my $post_id=$params->{'post'};
 	my $post_id = $post_id_in_query;
 	my $page;
-	my $metadata=Metadata::getPostsMetadata();
-	my $title=$metadata->{$post_id}{'title'};
-	my $created=$metadata->{$post_id}{'created'};
-	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") { # if exists and is not empty
+	my $metadata = getPostMetadata($post_id);
+	if($metadata) {
+		my $title=$metadata->{$post_id}{'title'};
+		my $created=$metadata->{$post_id}{'created'};
 		my $vars = {
 				blogtitle => 'test',
 				pagetype => 'confirm_delete',
@@ -133,13 +165,11 @@ sub deleteConfirm {
 	return $page;
 }
 
-# NOTE: the post source in markdown is not deleted, only the generated html is deleted.
+# NOTE: the post source in markdown is not deleted (just moved in deleted/), only the generated html is deleted.
 sub delete {
 	my $post_id_in_query = shift; # IGNORED
 	my $params=shift;
 	my $post_id=$params->{'post'}; # post's id to be deleted
-	# maybe the deleted posts' metadata should be saved on a separate json file, instead of deleting it
-	# the post src (post_id.markdown) should be moved to a special folder called deleted
 	
 	# delete post's html file
 	unlink "posts/$post_id.html";
@@ -151,11 +181,7 @@ sub delete {
 	# FIXME: if the destination directory contains a file with the same name, the file will be overwritten?
 	mv("posts-src/$post_id.markdown","posts-src/deleted/");
 	
-	# move post's metadata
-	#Metadata::moveDeletedPostMetadata( $post_id );
-	Metadata::removePostMetadata($post_id);
-	
-	listPosts();
+	list();
 	
 	my $page;
 	my $vars = {
@@ -168,7 +194,7 @@ sub delete {
 		id => $post_id
 	};
 	$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
-	return $page;# TODO add deletion/move tests in case something go wrong
+	return $page;# TODO add deletion/move tests in case something goes wrong
 }
 
 sub process {
@@ -176,6 +202,7 @@ sub process {
 	my $params = shift;
 	
 	print Dumper($params);
+	
 	my $title = $params->{'post_title'};
 	my $content = $params->{'post_content'};
 	my $tags = $params->{'tags'};
@@ -187,67 +214,73 @@ sub process {
 	
 	# TODO ADD "added" datetime metadata even if the date is in its post_id
 	
+# 	print Dumper($index);
+
+	# FIXME MOVE THIS FS STUFF IN ANOTHER MODULE (maybe)
+
+	# generate post_id if it's a new post
 	if($post_id==0) {
-		# save post's source content in multimarkdown format
 		my $found=0;
 		my $index=0;
 		while(!$found) {
-			if(!-e "posts-src/$current_date-$index.markdown") {
+			my $padded_index = sprintf("%02d", $index);
+			if(!-e "posts-src/$current_date-$padded_index.markdown") {
 				$found=1;
-				$post_id="$current_date-$index";
-				#save
-				open(OUTFILE, ">", "posts-src/$post_id.markdown");
-				print OUTFILE $content;
-				close (OUTFILE);
+				$post_id="$current_date-$padded_index";
 			}
 			else {
 				$index++;
+				die "index greater than 99" unless $index<=99;
 			}
 		}
 	}
-	else {
-		open(OUTFILE, ">", "posts-src/$post_id.markdown");
-		print OUTFILE $content;
-		close (OUTFILE);
-	}
-	
-# 	print Dumper($index);
+
+	# prepare the metadata hash
 
 	my $created = 0;
 	my $modified = 0;
-	if($post_id) {
-		my $posts_metadata=Metadata::getPostsMetadata();
-		$created = $posts_metadata->{$post_id}{'created'};# FIXME maybe add a check if the key exists
+	my $metadata = Metadata::getPostMetadata($post_id);
+	if($metadata) {
+		$created = $metadata->{$post_id}{'created'};
+		$modified = $current_datetime;
+	} else {
+		$created = $current_datetime;
 		$modified = $current_datetime;
 	}
-	else {
-		$created = $current_datetime;
-	}
+# save post
+#open(OUTFILE, ">", "posts-src/$post_id.markdown");
+#				debug
+#				print encode_json($decoded_hashref)."\n".$content;
+#				print OUTFILE encode_json($decoded_hashref)."\n".$content;
+#				close (OUTFILE);
 
-	# save metadata
-	my $decoded_hashref = {};
-	$decoded_hashref->{$post_id}{'title'}=decode('utf8', $title);
+	# 
+	#my $decoded_hashref = {};
+#	$metadata->{$post_id}{'title'}=decode('utf8', $title);
+	$metadata->{$post_id}{'title'}=$title;
 	if($tags) {
-		$decoded_hashref->{$post_id}{'tags'}=decode('utf8', $tags);
+#		$metadata->{$post_id}{'tags'}=decode('utf8', $tags);
+		$metadata->{$post_id}{'tags'}=$tags;
 	}
 	if($created) {
-		$decoded_hashref->{$post_id}{'created'}=$created;
+		$metadata->{$post_id}{'created'}=$created;
 	}
 	if($modified) {
-		$decoded_hashref->{$post_id}{'modified'}=$modified;
+		$metadata->{$post_id}{'modified'}=$modified;
 	}
 	# TODO SESSION AND AUTHOR implementation
 	
-	print Dumper($decoded_hashref);
+	#print Dumper($decoded_hashref);
 	
-	Metadata::addPostMetadata( $decoded_hashref );
+	# save the markdown source file with the metadata
+	Metadata::writePost($metadata, $content);
 	
 	# save generated html page
 	my $vars = {
 		pagetype => 'post',
 		title => $title,
 		content => $content,
-		blogtitle => 'test',
+		blogtitle => 'test', # FIXME
 		created => $created,
 		modified => $modified,
 		tags => $tags
@@ -260,6 +293,8 @@ sub process {
 	
 }
 
+# TODO MOVE THOSE FUNCTION IN ANOTHER MODULE DATE-TIME...
+ 
 sub getCurrentDateTime {
 	my $current_datetime = (localtime)->datetime;
 	return $current_datetime;
@@ -270,5 +305,7 @@ sub getCurrentDate {
 	my $current_date = substr $current_datetime, 0, 10;
 	return $current_date;
 }
+
+
 
 1;

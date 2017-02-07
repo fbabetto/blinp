@@ -3,7 +3,7 @@ package Metadata;
 use 5.016; # implies "use strict;"
 use warnings;
 use autodie;
-use utf8; # http://perldoc.perl.org/perluniintro.html (just neede because this file is utf8)
+use utf8; # http://perldoc.perl.org/perluniintro.html (just needed because this file is utf8)
 
 use Hash::MultiValue;
 use Data::Dumper;
@@ -17,137 +17,95 @@ use Template;
 use Encode;
 use Time::Piece;
 use JSON::PP;
+use Cwd;
 
-# return all the posts metadata hash ref
-sub _readMetadataFile {
-	my $json;
-	my $decoded_hashref = {};
-	if(-e "posts-metadata.json" and -s "posts-metadata.json") { # if exists and is not empty
-		# let's read its content
-# 		print "OK!";
-		open(JSONFILE, "<", "posts-metadata.json");
-		$json= <JSONFILE>;
-		close(JSONFILE);
-		$decoded_hashref=decode_json($json);
+sub getPostMetadata {
+	my $post_id = shift;
+	my $metadata = 0;
+	# if file exists and is not empty
+	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") {
+		open(FILE, "<", "posts-src/$post_id.markdown"); # TODO OR DIE
+		my $encoded_metadata = <FILE>; # the first line cointains the metadata
+		$encoded_metadata = _removeMarkdownCommentTags($encoded_metadata);
+#		print "after: ".$encoded_metadata."\n";
+		$metadata = decode_json($encoded_metadata); #FIXME this could fail
+		close(FILE);
+	} else {
+		# TODO ERROR maybe
+		$metadata = {}; # return a reference to an empty hash
 	}
-	return $decoded_hashref;
+	return $metadata;
 }
 
-# sub _writeMetadataFile {
-# 	my $metadata_hash_ref = shift;
-# 	
-# 	print "ref hash passato";
-# 	print Dumper($metadata_hash_ref);
-# 	
-# 	my $decoded_hashref = _readMetadataFile();
-# 	@{$decoded_hashref}{keys %{$metadata_hash_ref}} = values %{$metadata_hash_ref};
-# 	print "hash letto da file e forse cambiato";
-# 	print Dumper($decoded_hashref);
-# 	open(JSONFILE, ">", "posts-metadata.json");
-# 	print JSONFILE encode_json($decoded_hashref);
-# # 	print JSONFILE encode_json($metadata_hash_ref);
-# 	close(JSONFILE);
-# }
-
-# write all the metadata file with the passed hash ref to be saved
-# argument: the all hash ref of all metadata
-sub _writeMetadataFile {
-	my $decoded_hashref = shift;
-	print "hash ricevuto da scrivere dalla write\n";
-	print Dumper($decoded_hashref);
-	open(JSONFILE, ">", "posts-metadata.json");
-	print JSONFILE encode_json($decoded_hashref);
-# 	print JSONFILE encode_json($metadata_hash_ref);
-	close(JSONFILE);
-}
-
-# add a single post metadata to the metadata file
-# argument: a hash ref to a single post metadata
-sub _addMetadataToFile {
-	my $metadata_hash_ref = shift;
-	
-	print "ref hash passato\n";
-	print Dumper($metadata_hash_ref);
-	
-	my $decoded_hashref = _readMetadataFile();
-	@{$decoded_hashref}{keys %{$metadata_hash_ref}} = values %{$metadata_hash_ref};
-	print "hash letto da file e forse cambiato\n";
-	print Dumper($decoded_hashref);
-	open(JSONFILE, ">", "posts-metadata.json");
-	print JSONFILE encode_json($decoded_hashref);
-# 	print JSONFILE encode_json($metadata_hash_ref);
-	close(JSONFILE);
-}
-
-# remove a single post metadata from the metadata file
-# argument: the post id
-sub _removeMetadataFromFile {
-	#my $metadata_hash_ref = shift;
+sub getPostMetadataAndContent {
 	my $post_id = shift;
-	
-	#print "ref hash passato (remove)\n";
-	#print Dumper($metadata_hash_ref);
-	
-	my $decoded_hashref = _readMetadataFile();
-	delete $decoded_hashref->{$post_id};
-	#@{$decoded_hashref}{keys %{$metadata_hash_ref}} = values %{$metadata_hash_ref};
-	print "hash cambiato dalla remove\n";
-	print Dumper($decoded_hashref);
-	_writeMetadataFile($decoded_hashref);
-	#open(JSONFILE, ">", "posts-metadata.json");
-	#print JSONFILE encode_json($decoded_hashref);
-	#close(JSONFILE);
-}
-
-sub getPostsCount {
-	my $decoded_hashref = _readMetadataFile();
-	my $postCount = scalar keys %{$decoded_hashref};
-	return $postCount
-}
-
-sub getPostsMetadata {
-	my $decoded_hashref = _readMetadataFile();
-	return $decoded_hashref;
-}
-
-sub addPostMetadata {
-	my $metadata_hash_ref = shift;
-	_addMetadataToFile( $metadata_hash_ref );
-}
-
- sub removePostMetadata {
-	my $post_id = shift;
-	_removeMetadataFromFile($post_id);
- }
-
-sub moveDeletedPostMetadata {
-	my $post_id = shift;
-	my $metadata = getPostsMetadata;
-	
-	print "metadata passati alla move deleted...\n";
-	print Dumper($metadata);
-	
-	my $post_metadata = $metadata;
-	my $deleted_metadata={};
-	if(-e 'deleted-post-metadata.json') {
-		open(JSONFILE, "<", "deleted-posts-metadata.json");
-		my $json= <JSONFILE>;
-		close(JSONFILE);
-		$deleted_metadata=decode_json($json);
+	my $metadata = 0;
+	my $markdown_content = 0;
+	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") {
+		open(FILE, "<", "posts-src/$post_id.markdown"); # TODO OR DIE
+		my $encoded_metadata = <FILE>; # the first line cointains the metadata
+		$encoded_metadata = _removeMarkdownCommentTags($encoded_metadata);
+#		print "after: ".$encoded_metadata."\n";
+		$metadata = decode_json($encoded_metadata); #FIXME this could fail
+		$markdown_content = do { local $/; <FILE> };
+		close(FILE);
+	} else {
+		# TODO ERROR maybe
 	}
-	@{$deleted_metadata}{keys %{$post_metadata}} = values %{$post_metadata};
-	delete $metadata->{$post_id};
-	
-	print "metadata passati alla move deleted dopo cancellazione\n";
-	print Dumper($metadata);
-	
-	#_removeMetadataFromFile($metadata);
-	_removeMetadataFromFile($post_id);
-	# TODO addToMetadataFileDeleted() or something like that
-	# FIXME buggy (it does not delete properly)
-	open(JSONFILE, ">", "deleted-posts-metadata.json");
-	print JSONFILE encode_json($deleted_metadata);
-	close(JSONFILE);
+#	print Dumper($metadata);
+	return ($metadata, $markdown_content);
+}
+
+# same as the previous but get only a content snippet
+sub getPostMetadataAndContentSnippet {
+	my $post_id = shift;
+	my $metadata = 0;
+	my $markdown_content = 0;
+	# FIXME for the moment we just return the whole content
+	return getPostMetadataAndContent($post_id);
+}
+
+sub writePost {
+	my $metadata = shift;
+	my $markdown_content = shift;
+	my $post_id = (keys %$metadata)[0];
+	open(OUTFILE, ">", "posts-src/$post_id.markdown");
+	#debug
+#	print _addMarkdownCommentTags(encode_json($metadata))."\n".$markdown_content;
+	my $encoded_metadata = _addMarkdownCommentTags(encode_json($metadata));
+	print OUTFILE $encoded_metadata."\n".$markdown_content;
+
+	close (OUTFILE);
+}
+
+# https://stackoverflow.com/questions/32432301/counting-the-number-of-files-in-a-directory-of-special-type-in-perl
+sub getPostsIDs {
+	my @posts_ids;
+	my $dir = getcwd().'/posts';
+	#print "\ndir: ".$dir."\n";
+	opendir(my $dh, $dir) or die "opendir($dir): $!\n";
+	while (my $file = readdir($dh)) {
+		 # We only want files
+		 next unless (-f "$dir/$file");
+		 # Use a regular expression to find files ending in .html
+		# FIXME maybe use a stricter regex to filter date-number.html files only
+		next unless ($file =~ m/^[0-9]{4,4}-[0-9]{2,2}-[0-9]{2,2}-[0-9]+\.html$/);
+		push @posts_ids, substr($file, 0, -5);
+	}
+	closedir($dh);
+	return @posts_ids
+}
+
+sub _addMarkdownCommentTags {
+	my $string_to_enclose = shift;
+#	print "before: ".$string_to_enclose."\n";
+	return '<!---'.$string_to_enclose.'-->';
+}
+
+sub _removeMarkdownCommentTags {
+	my $string_to_clean = shift;
+#	print "before: ".$string_to_clean."\n";
+	return substr($string_to_clean, 5, -4);
 }
 
 1;
