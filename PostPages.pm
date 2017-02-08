@@ -21,16 +21,17 @@ use File::Copy "mv";
 use POSIX;
 
 use Metadata;
+use Settings;
 
-my $config = {
-	INCLUDE_PATH => 'templates/',  # or list ref
-	INTERPOLATE  => 1,               # expand "$var" in plain text
-	POST_CHOMP   => 1,               # cleanup whitespace
-	OUTPUT_PATH => 'posts/',
-	DEBUG => 1
-};
+#my $config = {
+#	INCLUDE_PATH => 'templates/',  # or list ref
+#	INTERPOLATE  => 1,               # expand "$var" in plain text
+#	POST_CHOMP   => 1,               # cleanup whitespace
+#	OUTPUT_PATH => 'posts/',
+#	DEBUG => 1
+#};
 
-my $template = Template->new($config);
+my $template = Template->new($Settings::template_toolkit_config);
 
 sub _generate_index {
 	my @posts_ids = @{$_[0]};
@@ -55,7 +56,7 @@ sub _generate_index {
 	my $vars = {
 		pagetype => 'postslist',
 		title => $title,
-		blogtitle => 'test',
+		blogtitle => $Settings::blog_title,
 		posts => $posts_list,
 	};
 	
@@ -65,7 +66,7 @@ sub _generate_index {
 
 # generate and paginate the post's list
 sub list {
-	my $posts_per_pages= 10; # edit here to set pagination (0 for disabling pagination)
+	my $posts_per_pages= $Settings::posts_per_page; # edit here to set pagination (0 for disabling pagination)
 	my @posts_ids = Metadata::getPostsIDs();
 	# should be ordered because after it could be splitted for pagination
 	@posts_ids = sort {$b cmp $a} @posts_ids;
@@ -100,7 +101,7 @@ sub list {
 sub add {
 	my $title = 'Add a new post';
 	my $vars = {
-		blogtitle => 'test', # FIXME
+		blogtitle => $Settings::blog_title,
 		pagetype => 'add',
 		title => $title,
 		id => 0
@@ -122,7 +123,7 @@ sub edit {
 		my $tags=$metadata->{$post_id}{'tags'};
 		# TODO add all the missing metadata (some are optional!)
 		my $vars = {
-			blogtitle => 'test',
+			blogtitle => $Settings::blog_title,
 			pagetype => 'edit',
 			title => $title,
 			content => $content,
@@ -149,7 +150,7 @@ sub deleteConfirm {
 		my $title=$metadata->{$post_id}{'title'};
 		my $created=$metadata->{$post_id}{'created'};
 		my $vars = {
-				blogtitle => 'test',
+				blogtitle => $Settings::blog_title,
 				pagetype => 'confirm_delete',
 				title => $title,
 				created => $created,
@@ -185,7 +186,7 @@ sub delete {
 	
 	my $page;
 	my $vars = {
-		blogtitle => 'test',
+		blogtitle => $Settings::blog_title,
 		pagetype => 'delete',
 # 		title => $title,
 # 		created => $created,
@@ -280,7 +281,7 @@ sub process {
 		pagetype => 'post',
 		title => $title,
 		content => $content,
-		blogtitle => 'test', # FIXME
+		blogtitle => $Settings::blog_title,
 		created => $created,
 		modified => $modified,
 		tags => $tags
