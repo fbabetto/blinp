@@ -4,14 +4,14 @@
 		<meta charset="utf-8" />
 		<link rel="stylesheet" href="/blog/static/css/main.css" media="screen" />
 		<title>
-		[% SWITCH pagetype %]
-		[% CASE [ 'post', 'add', 'edit' ] %]
-			[% title %] - [% blogtitle %]
-		[% CASE 'postslist' %]
-			[% blogtitle %]
-		[% CASE DEFAULT %]
-			[% title %]
-		[% END %]
+[% SWITCH pagetype %]
+[% CASE [ 'post', 'add', 'edit' ] %]
+[% title %] - [% blogtitle %]
+[% CASE 'postslist' %]
+[% blogtitle %]
+[% CASE DEFAULT %]
+[% title %]
+[% END %]
 		</title>
 	</head>
 	<body>
@@ -27,22 +27,22 @@
 			</section>
 		</aside>
 		<section>
-		[% SWITCH pagetype %]
-		[% CASE 'post' %]
-			[% INCLUDE post.tt %]
-		[% CASE 'postslist' %]
-			[% INCLUDE postslist.tt %]
-			[% # content %]
-		[% CASE [ 'add', 'edit' ] %]
-			[% INCLUDE add.tt %]
-		[% CASE [ 'confirm_delete', 'delete' ] %]
-			[% INCLUDE delete.tt %]
-		[% CASE [ 'change_password', 'change_password_successful', 'change_password_failed' ] %]
-			[% INCLUDE change_password.tt %]
-		[% CASE DEFAULT %]
-			[% # TODO %]
-			[% content %]
-		[% END %]
+[% SWITCH pagetype %]
+[% CASE 'post' %]
+[% INCLUDE post.tt %]
+[% CASE 'postslist' %]
+[% INCLUDE postslist.tt %]
+[% # content %]
+[% CASE [ 'add', 'edit' ] %]
+[% INCLUDE add.tt %]
+[% CASE [ 'confirm_delete', 'delete' ] %]
+[% INCLUDE delete.tt %]
+[% CASE [ 'change_password', 'change_password_successful', 'change_password_failed' ] %]
+[% INCLUDE change_password.tt %]
+[% CASE DEFAULT %]
+[% # TODO %]
+[% content %]
+[% END %]
 		</section>
 		<footer>
 			<!-- footer -->
