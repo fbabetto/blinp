@@ -1,7 +1,9 @@
 [% FOREACH key IN posts.keys.sort.reverse %] [% # ordered posts id's in reverse order %]
-[% posts.$key.title %]
+<a href="[% key %].html"><h2>[% posts.$key.title %]</h2></a>
+<section>
 [% USE MultiMarkdown -%]
 [% FILTER multimarkdown %]
 [% posts.$key.content %][% # DO NOT INDENT THIS LINE, BECAUSE IT BREAKS MULTIMARKDOWN! %]
 [% END %]
+</section>
 [% END %]
