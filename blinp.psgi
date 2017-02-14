@@ -27,7 +27,8 @@ use Requests;
 my $post_admin_impl = sub {
 	my($action, $arguments, $post) = @_;
 	my %ROUTING = (
-		"/"			=> \&home,
+		"/"			=> \&PostPages::index,
+		"/index"	=> \&PostPages::index,
 		"/add"		=> \&PostPages::add,
 		"/edit"		=> \&PostPages::edit,
 		"/delete"	=> \&PostPages::deleteConfirm,
@@ -36,6 +37,9 @@ my $post_admin_impl = sub {
 	);
  	if($ROUTING{$action}) {
  		my $page = $ROUTING{$action}->($arguments, $post);
+		if(!$page) {
+			return [ 404, [ 'Content-Type' => 'text/html' ], [ 'Page not found: post admin page index out of bound.' ]]; # FIXME
+		}
 		my $res = Plack::Response->new(200);
 		$res->content_type('text/html');
 		$res->body($page);
@@ -88,7 +92,7 @@ my $post_admin = sub {
 	my $req = Plack::Request->new($env);
 	my $uri = $req->path_info;
 	my $req_uri = $req->request_uri;
-	my $function_regex = qr/\/[a-z]+/;
+	my $function_regex = qr/\/[a-z]*/;
 	my $argument_regex = qr/.*/;
 	if ($uri =~ /(?<function>$function_regex)\/?(?<argument>$argument_regex)/) {
 		my $function = $+{function};

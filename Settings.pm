@@ -9,11 +9,19 @@ our $blog_title = "Test";
 
 our $posts_per_page = 5; # to disable pagination
 
-our $template_toolkit_config = {
+our $template_toolkit_config_write_on_file = {
 	INCLUDE_PATH => 'templates/',  # or list ref
 	INTERPOLATE  => 1,               # expand "$var" in plain text
 	POST_CHOMP   => 1,               # cleanup whitespace
 	OUTPUT_PATH => 'posts/',
+	DEBUG => 1
+};
+
+our $template_toolkit_config_write_on_scalar = {
+	INCLUDE_PATH => 'templates/',  # or list ref
+	INTERPOLATE  => 1,               # expand "$var" in plain text
+	POST_CHOMP   => 1,               # cleanup whitespace
+#	OUTPUT_PATH => 'posts/',
 	DEBUG => 1
 };
 
