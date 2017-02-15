@@ -113,7 +113,6 @@ sub list {
 	}
 }
 
-# TODO FIX LINKS IN INDEX AND ADD "ADD/EDIT/DELETE" LINKS
 sub index {
 	my $index_name = shift;
 	my $index_offset=substr($index_name, -1, 1); # take the last character
