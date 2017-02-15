@@ -29,6 +29,8 @@ my $template_s = Template->new($Settings::template_toolkit_config_write_on_scala
 sub _generate_index {
 	my @posts_ids = @{$_[0]};
 	my $page = $_[1]; # if null we don't write to file but we return the generated page
+	my $prev_index = $_[2];
+	my $next_index = $_[3];
 	print "posts_ids: ".Dumper(@posts_ids)."\n";
 	print "page name: ".Dumper($page)."\n";
 	my $post_count = scalar @posts_ids;
@@ -55,6 +57,8 @@ sub _generate_index {
 		title => $title,
 		blogtitle => $Settings::blog_title,
 		posts => $posts_list,
+		prev_index => $prev_index,
+		next_index => $next_index,
 	};
 	if($page ne '') {
 		$template_f->process('main.tt', $vars, $page) || die $template_f->error(), "\n";
@@ -79,12 +83,21 @@ sub list {
 	my $start_index = 0;
 	my $end_index = $posts_per_pages-1;
 	my $index_page_name='index.html';
+	my $prev_page = '';
+	my $next_page = '';
 	while($end_index <= ($post_count-1)) {
 		if($end_index > ($post_count-1)) {
 			$end_index = $post_count-1;
+		} else {
+			$next_page = 'index-'.($generated_pages+1).'.html';
+		}
+		if($generated_pages > 1) {
+			$prev_page = 'index-'.($generated_pages-1).'.html';
+		} elsif($generated_pages == 1) {
+			$prev_page = 'index.html';
 		}
 		my @current_posts_ids = @posts_ids[$start_index..$end_index];
-		_generate_index(\@current_posts_ids, $index_page_name);
+		_generate_index(\@current_posts_ids, $index_page_name, $prev_page, $next_page);
 		$generated_pages++;
 		$start_index+=$posts_per_pages;
 		$end_index+=$posts_per_pages;
@@ -92,15 +105,19 @@ sub list {
 	}
 	if($generated_pages < $index_pages) {
 		# we miss the last index files
+		$next_page = '';
+		$prev_page = 'index-'.($generated_pages-1).'.html';
 		$end_index = ($post_count-1);
 		my @current_posts_ids = @posts_ids[$start_index..$end_index];
-		_generate_index(\@current_posts_ids, $index_page_name);
+		_generate_index(\@current_posts_ids, $index_page_name, $prev_page, $next_page);
 	}
 }
 
 # TODO FIX LINKS IN INDEX AND ADD "ADD/EDIT/DELETE" LINKS
 sub index {
-	my $index_offset=shift; # if 0 it's the first page, if 1 it's the second one...
+	my $index_name = shift;
+	my $index_offset=substr($index_name, -1, 1); # take the last character
+	# if 0 it's the first page, if 1 it's the second one...
 	if($index_offset eq '') {
 		$index_offset=0;
 	}
@@ -121,11 +138,20 @@ sub index {
 	}
 	my $start_index=$posts_per_pages*$index_offset;
 	my $end_index=$posts_per_pages*($index_offset+1)-1;
+	my $prev_page = '';
+	my $next_page = '';
+	if($index_offset > 0) {
+		my $n = $index_offset-1;
+		$prev_page = "index-$n";
+	}
 	if($end_index >= $post_count) {
 		$end_index = $post_count-1;
+	} else {
+		my $n = $index_offset+1;
+		$next_page = "index-$n"
 	}
 	my @current_posts_ids = @posts_ids[$start_index..$end_index];
-	return _generate_index(\@current_posts_ids, '');
+	return _generate_index(\@current_posts_ids, '', $prev_page, $next_page);
 }
 
 # show the generated post without writing to file
@@ -194,7 +220,7 @@ sub deleteConfirm {
 	#my $post_id=$params->{'post'};
 	my $post_id = $post_id_in_query;
 	my $page;
-	my $metadata = getPostMetadata($post_id);
+	my $metadata = Metadata::getPostMetadata($post_id);
 	if($metadata) {
 		my $title=$metadata->{$post_id}{'title'};
 		my $created=$metadata->{$post_id}{'created'};

@@ -1,14 +1,28 @@
+[% SWITCH pagetype %]
+[% CASE 'admin_postslist' %]
+<a href="add"><p>add</p></a>
+[% END %]
 [% FOREACH key IN posts.keys.sort.reverse %] [% # ordered posts id's in reverse order %]
+<section>
 [% SWITCH pagetype %]
 [% CASE 'postslist' %]
 <a href="[% key %].html"><h2>[% posts.$key.title %]</h2></a>
 [% CASE 'admin_postslist' %]
 <a href="view/[% key %]"><h2>[% posts.$key.title %]</h2></a>
+<a href="edit/[% key %]"><p>edit</p></a>
+<a href="delete/[% key %]"><p>delete</p></a>
 [% END %]
-<section>
 [% USE MultiMarkdown -%]
 [% FILTER multimarkdown %]
 [% posts.$key.content %][% # DO NOT INDENT THIS LINE, BECAUSE IT BREAKS MULTIMARKDOWN! %]
 [% END %]
 </section>
 [% END %]
+<section>
+[% IF prev_index %]
+<a href="[% prev_index %]"><p>prev</p></a>
+[% END %]
+[% IF next_index %]
+<a href="[% next_index %]"><p>next</p></a>
+[% END %]
+</section>
