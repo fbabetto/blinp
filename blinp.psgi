@@ -34,6 +34,7 @@ my $post_admin_impl = sub {
 		"/delete"	=> \&PostPages::deleteConfirm,
 		"/deleted"	=> \&PostPages::delete,
 		"/process"	=> \&PostPages::process,
+		"/view"		=> \&PostPages::view,
 	);
  	if($ROUTING{$action}) {
  		my $page = $ROUTING{$action}->($arguments, $post);

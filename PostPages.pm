@@ -95,6 +95,7 @@ sub list {
 	}
 }
 
+# TODO FIX LINKS IN INDEX AND ADD "ADD/EDIT/DELETE" LINKS
 sub index {
 	my $index_offset=shift; # if 0 it's the first page, if 1 it's the second one...
 	if($index_offset eq '') {
@@ -122,6 +123,25 @@ sub index {
 	}
 	my @current_posts_ids = @posts_ids[$start_index..$end_index];
 	return _generate_index(\@current_posts_ids, '');
+}
+
+# show the generated post without writing to file
+sub view {
+	my $post_id = shift;
+	my($metadata, $content) = Metadata::getPostMetadataAndContent($post_id);
+	#my $title = $metadata->{$post_id}{'title'};
+	my $vars = {
+		pagetype => 'post',
+		title => $metadata->{$post_id}{'title'},
+		content => $content,
+		blogtitle => $Settings::blog_title,
+		created => $metadata->{$post_id}{'created'},
+		modified => $metadata->{$post_id}{'modified'},
+		tags => $metadata->{$post_id}{'tags'}
+	};
+	my $page;
+	$template_s->process('main.tt', $vars, \$page) || die $template_f->error(), "\n";
+	return $page;
 }
 
 sub add {
@@ -267,7 +287,7 @@ sub process {
 	my $created = 0;
 	my $modified = 0;
 	my $metadata = Metadata::getPostMetadata($post_id);
-	if($metadata) {
+	if(exists $metadata->{$post_id}{'created'}) {
 		$created = $metadata->{$post_id}{'created'};
 		$modified = $current_datetime;
 	} else {

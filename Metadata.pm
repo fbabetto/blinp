@@ -21,7 +21,8 @@ use Cwd;
 
 sub getPostMetadata {
 	my $post_id = shift;
-	my $metadata = 0;
+	my $metadata = {};
+	$metadata->{$post_id}={};
 	# if file exists and is not empty
 	if(-e "posts-src/$post_id.markdown" and -s "posts-src/$post_id.markdown") {
 		open(FILE, "<", "posts-src/$post_id.markdown"); # TODO OR DIE
@@ -32,7 +33,6 @@ sub getPostMetadata {
 		close(FILE);
 	} else {
 		# TODO ERROR maybe
-		$metadata = {}; # return a reference to an empty hash
 	}
 	return $metadata;
 }
