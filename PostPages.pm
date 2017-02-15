@@ -46,13 +46,16 @@ sub _generate_index {
 	# the posts are ordered by template-toolkit in the output file
 	# because we can't sort the hash keys directly
 	my $title = 'Index';
+	my $pagetype = 'postslist';
+	if($page eq '') {
+		$pagetype = 'admin_postslist';
+	}
 	my $vars = {
-		pagetype => 'postslist',
+		pagetype => $pagetype,
 		title => $title,
 		blogtitle => $Settings::blog_title,
 		posts => $posts_list,
 	};
-	
 	if($page ne '') {
 		$template_f->process('main.tt', $vars, $page) || die $template_f->error(), "\n";
 	} else {

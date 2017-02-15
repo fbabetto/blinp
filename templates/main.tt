@@ -30,7 +30,7 @@
 [% SWITCH pagetype %]
 [% CASE 'post' %]
 [% INCLUDE post.tt %]
-[% CASE 'postslist' %]
+[% CASE [ 'postslist', 'admin_postslist' ] %]
 [% INCLUDE postslist.tt %]
 [% # content %]
 [% CASE [ 'add', 'edit' ] %]

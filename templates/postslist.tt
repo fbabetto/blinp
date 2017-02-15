@@ -1,5 +1,10 @@
 [% FOREACH key IN posts.keys.sort.reverse %] [% # ordered posts id's in reverse order %]
+[% SWITCH pagetype %]
+[% CASE 'postslist' %]
 <a href="[% key %].html"><h2>[% posts.$key.title %]</h2></a>
+[% CASE 'admin_postslist' %]
+<a href="view/[% key %]"><h2>[% posts.$key.title %]</h2></a>
+[% END %]
 <section>
 [% USE MultiMarkdown -%]
 [% FILTER multimarkdown %]
