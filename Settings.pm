@@ -5,6 +5,8 @@ use warnings;
 use autodie;
 use utf8; # http://perldoc.perl.org/perluniintro.html (just needed because this file is utf8)
 
+our $prefix = "/blog";
+
 our $blog_title = "Test";
 
 our $posts_per_page = 5; # to disable pagination
