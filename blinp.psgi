@@ -24,6 +24,13 @@ use Requests;
 # FIXME MAYBE TEMPLATE FOR DEFAULT STATUS 404 403 ECC.
 # FIXME reduce code duplication
 
+my $root_admin = sub {
+	my $res = Plack::Response->new(200);
+	$res->status(301);
+	$res->redirect($Settings::prefix.'/admin/post/', 301);
+	return $res->finalize;
+};
+
 my $post_admin_impl = sub {
 	my($action, $arguments, $post) = @_;
 	my %ROUTING = (
@@ -53,8 +60,10 @@ my $post_admin_impl = sub {
 my $user_admin_impl = sub {
 	my($action, $req_uri, $username, $params) = @_;
 	my %ROUTING = (
-		"/"			=> \&home,
-		"/changepassword"		=> \&UserPages::change_password,
+		"/"					=> \&UserPages::view,
+		"/view"				=> \&UserPages::view,
+		"/changename"		=> \&UserPages::change_name,
+		"/changepassword"	=> \&UserPages::change_password,
 	);
  	if($ROUTING{$action}) {
  		my $page = $ROUTING{$action}->($req_uri, $username, $params);
@@ -84,6 +93,8 @@ my $user_admin = sub {
  		my $params_in_posts = $req->parameters;
 		return $user_admin_impl->($function, $req_uri, $username, $params_in_posts);
 	}
+	# if the uri does not comply to the regex we return the root admin uri
+	return $root_admin;
 };
 
 # Here we manage
@@ -101,6 +112,8 @@ my $post_admin = sub {
  		my $params_in_posts = $req->parameters;
 		return $post_admin_impl->($function, $argument, $params_in_posts);
 	}
+	# if the uri does not comply to the regex we return the root admin uri
+	return $root_admin;
 };
 
 my $main = sub {
@@ -114,7 +127,7 @@ my $static = Plack::App::File->new(root => "./static")->to_app;
 builder {
 	enable "Session::Cookie", secret=>'foobar';# FIXME secret
 
-	my $prefix = "/blog";
+	my $prefix = $Settings::prefix;
 	#my $prefix = "/";
 	
 	if(!($prefix =~ /\/[a-z]*/)) {
@@ -148,6 +161,7 @@ builder {
 				return Users::authenticate( $username, $password, $env);
 			}
 		};
+		mount "/" => $root_admin;
 		mount "/user" => $user_admin;
 		mount "/post" => $post_admin;
 	});
