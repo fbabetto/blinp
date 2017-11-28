@@ -208,3 +208,47 @@ h1 {
 	padding: 1%;
 }
 
+#post_edit {
+	text-align: right;
+}
+
+#post_edit input {
+	width: 80%;
+}
+
+#post_edit textarea {
+	width: 100%;
+}
+
+#post_edit label {
+	width: 10%;
+	font-weight: bold;
+}
+
+
+
+#post_content_block {
+	display: block;
+	text-align: center;
+}
+
+fieldset {
+	border-style: none solid solid none;
+	box-shadow: 0 0 5px rgba(0,0,0,0.1);
+	border-width: 1px;
+	border-color: lightgrey;
+	border-radius: 10px 10px 10px 10px;
+	padding: 3%;
+	margin: 3%;
+}
+
+legend {
+	padding: 0.2em 0.5em;
+	font-weight: bold;
+	border-style: none solid solid none;
+	border-width: 1px;
+	border-color: lightgrey;
+	border-radius: 5px 5px 5px 5px;
+	background-color: white;
+	font-size: 85%;
+}

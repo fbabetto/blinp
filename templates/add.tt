@@ -1,12 +1,23 @@
-<form action="/blog/admin/post/process" method="post">
+[% SWITCH pagetype %]
+	[% CASE 'add' %]<h2>Insert new post</h2>
+	[% CASE 'edit' %]<h2>Edit post [% id %]</h2>
+[% END %]
+<form id="post_edit" action="/blog/admin/post/process" method="post">
 	<fieldset>
-	[% SWITCH pagetype %]
-		[% CASE 'add' %]<legend>Insert your post</legend>
-		[% CASE 'edit' %]<legend>Edit your post</legend>
-	[% END %]
-		<p><input type="text" name="post_title" [% IF pagetype == 'edit' %]value="[% title %]"[% END %]/></p>
-		<p><textarea rows="10" cols="30" name="post_content">[% IF pagetype == 'edit' %][% content %][% END %]</textarea></p>
-		<p><input type="text" name="tags" [% IF pagetype == 'edit' %]value="[% tags %]"[% END %]/></p>
+		<legend>Post content</legend>
+		<p>
+			<label for "post_tile">Title</label>
+			<input type="text" name="post_title" id="post_title" [% IF pagetype == 'edit' %]value="[% title %]"[% END %]/>
+		</p>
+		<p id="post_content_block">
+			<label for "post_content">Content</label>
+			<textarea rows="20" cols="100" name="post_content" id="post_content">[% IF pagetype == 'edit' %][% content %][% END %]</textarea>
+		</p>
+		<p>
+			<label for "post_tags">Tags</label>
+			<input type="text" name="tags" id="post_tags" [% IF pagetype == 'edit' %]value="[% tags %]"[% END %]/>
+		</p>
+<p>Tags should be space separated</p>
 	</fieldset>
 	<input type="hidden" name="id" value="[% id %]" />
 	<input type="submit" />

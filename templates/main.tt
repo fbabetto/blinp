@@ -16,7 +16,7 @@
 	</head>
 	<body>
 		<header id="main-header">
-			<h1>[% title %]</h1>
+			<h1>[% blogtitle %]</h1>
 		</header>
 		<div id="main-menu">
 			<nav>
