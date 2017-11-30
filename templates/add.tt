@@ -1,7 +1,3 @@
-[% SWITCH pagetype %]
-	[% CASE 'add' %]<h2>Insert new post</h2>
-	[% CASE 'edit' %]<h2>Edit post [% id %]</h2>
-[% END %]
 <form id="post_edit" action="/blog/admin/post/process" method="post">
 	<fieldset>
 		<legend>Post content</legend>
@@ -20,5 +16,5 @@
 <p>Tags should be space separated</p>
 	</fieldset>
 	<input type="hidden" name="id" value="[% id %]" />
-	<input type="submit" />
+	<p><input type="submit" value="Publish" accesskey="s" /></p>
 </form>
