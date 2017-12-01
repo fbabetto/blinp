@@ -166,7 +166,7 @@ h1 {
 	padding: 0;
 }
 
-.post h2 {
+.post h3 {
 	margin: 2px;
 	padding: 0.5em;
 	display: block;
@@ -195,6 +195,19 @@ h1 {
 .post article {
 	margin: 1%;
 	padding: 1%;
+}
+
+#date-created-modified {
+	font-size: 80%;
+	display: block;
+	text-align: right;
+	float: none;
+}
+
+#date-created-modified span {
+	margin: 1%;
+	float: none;
+	display: inline;
 }
 
 #post_edit input {
@@ -275,3 +288,9 @@ input[type=submit] {
 	border-radius: 5px 5px 5px 5px;
 	width: 100%;
 }
+
+.tags {
+	margin: 1%;
+	font-size: 90%;
+}
+

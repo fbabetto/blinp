@@ -3,14 +3,15 @@
 <section class="post">
 [% SWITCH pagetype %]
 [% CASE 'postslist' %]
-<h2><a href="[% key %].html">[% posts.$key.title %]</a></h2>
+<h3><a href="[% key %].html">[% posts.$key.title %]</a></h3>
 [% CASE 'admin_postslist' %]
-<h2><a href="view/[% key %]">[% posts.$key.title %]</a>
-<span class="admin-actions">
-<a href="edit/[% key %]">edit</a>
-<a href="delete/[% key %]">delete</a>
-</span>
-</h2>
+<h3>
+	<a href="view/[% key %]">[% posts.$key.title %]</a>
+	<span class="admin-actions">
+		<a href="edit/[% key %]">edit</a>
+		<a href="delete/[% key %]">delete</a>
+	</span>
+</h3>
 [% END %]
 <article>
 [% USE MultiMarkdown -%]
@@ -33,3 +34,4 @@ next
 [% END %]
 </section>
 </div>
+

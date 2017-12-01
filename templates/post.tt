@@ -1,11 +1,18 @@
-[% created %]
-[% IF modified %]
-[% modified %]
-[% END %]
+<section class="post">
 [% # TODO author %]
-[% title %]
+<h3>[% title %]</h3>
+<p id="date-created-modified">
+<span>Created [% created %]</span>
+[% IF modified %]
+<span>Modified [% modified %]</span>
+[% END %]
+</p>
+<article>
 [% USE MultiMarkdown -%]
 [% FILTER multimarkdown %]
 [% content %][% # DO NOT INDENT THIS LINE, BECAUSE IT BREAKS MULTIMARKDOWN! %]
 [% END %]
-[% tags %]
+</article>
+<p class="tags">Tags: [% tags %]</p>
+</div>
+
