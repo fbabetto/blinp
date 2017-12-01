@@ -35,7 +35,7 @@ This is in early development stage! Don't use it in production!
 * Posts management (duh); ✔
 * user authentication (only one user supported); ✔
 * a page for changing user password and configuring displayed name;
-* pagination of the main page (show the last X posts on the main page);
+* pagination of the main page (show the last X posts on the main page); ✔
 * a nice and basic default theme using HTML 5 and CSS 3;
 
 ### 0.2
