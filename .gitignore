@@ -1,4 +1,8 @@
 posts/*.html
+posts/img/*.jpg
+posts/img/.jpeg
+posts/img/*.png
+posts/img/*.gif
 posts-src/*.markdown
 posts-src/deleted/*.markdown
 *.json
