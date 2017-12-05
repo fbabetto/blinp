@@ -19,7 +19,6 @@ use Plack::App::File;
 use Plack::App::URLMap;
 
 use Users;# FIXME
-use Requests;
 
 # FIXME MAYBE TEMPLATE FOR DEFAULT STATUS 404 403 ECC.
 # FIXME reduce code duplication
