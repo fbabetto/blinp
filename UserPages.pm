@@ -7,6 +7,7 @@ use utf8; # http://perldoc.perl.org/perluniintro.html (just neede because this f
 
 use Hash::MultiValue;
 use Data::Dumper;
+use Template;
 
 my $config = {
 	INCLUDE_PATH => 'templates/',  # or list ref
