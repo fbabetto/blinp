@@ -24,13 +24,13 @@ use Users;# FIXME
 # FIXME reduce code duplication
 
 my $root_admin = sub {
-	my $res = Plack::Response->new(200);
-	$res->status(301);
-	$res->redirect($Settings::prefix.'/admin/post/', 301);
+	my $res = Plack::Response->new;
+	$res->redirect($Settings::prefix.'/admin/post/index', 301);
 	return $res->finalize;
 };
 
 my $post_admin_impl = sub {
+
 	my($action, $arguments, $post) = @_;
 	my %ROUTING = (
 		"/"			=> \&PostPages::index,
@@ -93,7 +93,7 @@ my $user_admin = sub {
 		return $user_admin_impl->($function, $req_uri, $username, $params_in_posts);
 	}
 	# if the uri does not comply to the regex we return the root admin uri
-	return $root_admin;
+	return $root_admin->();
 };
 
 # Here we manage
@@ -112,7 +112,7 @@ my $post_admin = sub {
 		return $post_admin_impl->($function, $argument, $params_in_posts);
 	}
 	# if the uri does not comply to the regex we return the root admin uri
-	return $root_admin;
+	return $root_admin->();
 };
 
 my $main = sub {
