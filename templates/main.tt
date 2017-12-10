@@ -43,7 +43,7 @@
 						<ul>	<!-- FIXME get base url from settings -->
 							<li><a href="/blog/admin/user/view">view my public profile</a></li>
 							<li><a href="/blog/admin/user/changepassword">change my password</a></li>
-							<li><a href="/blog/admin/user/changename">change my displayed name</a></li>
+							<li><a href="/blog/admin/user/changeprofile">change my profile information</a></li>
 						</ul>
 					</li>
 				</ul>
@@ -77,6 +77,9 @@
 [% CASE [ 'change_password', 'change_password_successful', 'change_password_failed' ] %]
 <h2>Change your password</h2>
 [% INCLUDE change_password.tt %]
+[% CASE [ 'change_profile', 'change_profile_successful', 'change_profile_failed' ] %]
+<h2>Change your profile</h2>
+[% INCLUDE change_profile.tt %]
 [% CASE DEFAULT %]
 [% # TODO %]
 [% content %]

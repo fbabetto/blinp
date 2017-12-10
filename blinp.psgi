@@ -11,7 +11,9 @@ use Data::Dumper;
 
 use Plack::Request;
 use Hash::MultiValue;
-# http://search.cpan.org/~miyagawa/Hash-MultiValue-0.15/lib/Hash/MultiValue.pm
+# http://search.cpan.org/~aristotle/Hash-MultiValue/lib/Hash/MultiValue.pm
+#FIXME FIX GET/SET ON HASH-MULTIVALUE SEE DOCS
+
 
 use Plack::Response;
 use Plack::Builder;
@@ -61,7 +63,7 @@ my $user_admin_impl = sub {
 	my %ROUTING = (
 		"/"					=> \&UserPages::view,
 		"/view"				=> \&UserPages::view,
-		"/changename"		=> \&UserPages::change_name,
+		"/changeprofile"	=> \&UserPages::change_profile,
 		"/changepassword"	=> \&UserPages::change_password,
 	);
  	if($ROUTING{$action}) {

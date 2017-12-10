@@ -30,11 +30,10 @@ sub change_password {
 	#Dumper($username);
 	my $page;
 	my $vars = {
-					blogtitle => 'test',
-					pagetype => 'change_password',
-					target_url => $target_uri
-
-			};
+		blogtitle => 'test',
+		pagetype => 'change_password',
+		target_url => $target_uri
+	};
 	if($params && exists $params->{"old_password"} && exists $params->{"new_password"} && exists $params->{"new_password_confirm"}
 		&& $params->{"new_password"} eq $params->{"new_password_confirm"}) {
 		my $success = Users::change_password($username, $params->{"old_password"}, $params->{"new_password"});
@@ -46,6 +45,46 @@ sub change_password {
 	}
 	$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
 	return $page;
+}
+
+sub change_profile {
+	my ($target_uri, $username, $params) = @_;
+	print Dumper("params: ");
+	print Dumper($params);
+
+	my $profile_data = Users::get_user_data($username);
+	print Dumper($username);
+	print Dumper($profile_data);
+	
+	my $vars = {
+		blogtitle => 'test',
+		pagetype => 'change_profile',
+		target_url => $target_uri,
+		username => $username,
+		name => $profile_data->{'name'},
+		surname => $profile_data->{'surname'},
+		email => $profile_data->{'email'}
+	};
+
+	if($params && exists $params->{"updated"}) {
+		# we pass the hash params directly without abstracting the key names FIXME?
+		my $success = Users::set_user_data($username, $params);
+		if($success) {
+			$vars->{pagetype} = 'change_profile_successful';
+		} else {
+			$vars->{pagetype} = 'change_profile_failed';
+		}
+	}
+
+	my $page;
+	$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
+	return $page;
+
+}
+
+sub view {
+	my ($target_uri, $username, $params) = @_;
+	
 }
 
 1;

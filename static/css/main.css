@@ -289,6 +289,10 @@ input[type=submit] {
 	width: 100%;
 }
 
+#change_profile p {
+	text-align: right;
+}
+
 .tags {
 	margin: 1%;
 	font-size: 90%;

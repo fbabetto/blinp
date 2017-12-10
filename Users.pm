@@ -106,4 +106,26 @@ sub change_password {
 	return Plack::Util::FALSE;
 }
 
+sub get_user_data {
+	my $username = shift;
+	my 	$users_hashref = _get_users_data();
+	my $user_data = $users_hashref->{$username};
+#	print Dumper($user_data);
+	return $user_data;
+}
+
+sub set_user_data {
+	my ($username, $params) = @_;
+	print Dumper($username);
+	print Dumper($params);
+	my $users_hashref = _get_users_data();
+	$users_hashref->{$username}{'name'} = $params->{'name'};
+	$users_hashref->{$username}{'surname'} = $params->{'surname'};
+	$users_hashref->{$username}{'email'} = $params->{'email'};
+	open(JSONFILE, ">", "users.json");
+	print JSONFILE encode_json($users_hashref);
+	close(JSONFILE);
+	return Plack::Util::TRUE; # FIXME
+}
+
 1;

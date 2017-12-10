@@ -1,0 +1,30 @@
+[% SWITCH pagetype %]
+	[% CASE 'change_profile' %]
+<form id="change_profile" action="[% target_url %]" method="post">
+	<fieldset>
+		<legend>Change your profile:</legend>
+		<p>
+			<label for="username">Username: </label>
+			<input type="text" name="username" id="username" value="[% username %]" disabled="disabled" />
+		</p>
+		<p>
+			<label for="name">Displayed name: </label>
+			<input type="text" name="name" id="name" value="[% name %]" />
+		</p>
+		<p>
+			<label for="surname">Displayed surname: </label>
+			<input type="text" name="surname" id="surname" value="[% surname %]" />
+		</p>
+		<p>
+			<label for="email">Email </label>
+			<input type="text" name="email" id="email" value="[% email %]" />
+		</p>
+	</fieldset>
+	<input type="hidden" name="updated" value="1" />
+	<input type="submit" value="Update profile" accesskey="s" />
+</form>
+	[% CASE 'change_profile_successful' %]
+	<p>Profile change successful!</p>
+	[% CASE 'change_profile_failed' %]
+	<p>Profile change failed!</p>
+[% END %]
