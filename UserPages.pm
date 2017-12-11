@@ -85,6 +85,20 @@ sub change_profile {
 sub view {
 	my ($target_uri, $username, $params) = @_;
 	
+	my $profile_data = Users::get_user_data($username);
+	my $vars = {
+		blogtitle => 'test',
+		pagetype => 'view_profile',
+		username => $username,
+		name => $profile_data->{'name'},
+		surname => $profile_data->{'surname'},
+		# email is not used because is not shown publicly
+		email => $profile_data->{'email'}
+	};
+	
+	my $page;
+	$template->process('main.tt', $vars, \$page) || die $template->error(), "\n";
+	return $page;
 }
 
 1;

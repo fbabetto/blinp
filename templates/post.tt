@@ -14,5 +14,5 @@
 [% END %]
 </article>
 <p class="tags">Tags: [% tags %]</p>
-</div>
+</section>
 

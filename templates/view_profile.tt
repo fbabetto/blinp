@@ -1,0 +1,6 @@
+<section id="view-profile">
+	<dl>
+		<dt>Name</dt><dd>[% name %]</dd>
+		<dt>Surname</dt><dd>[% surname %]</dd>
+	</dl>
+</section>
